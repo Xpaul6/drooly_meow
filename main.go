@@ -23,6 +23,7 @@ const DEFORM_INTENSITY = 70
 const CAT_TEXTURE_PATH = "./resources/drooly.png"
 const CAT_SFX_PATH = "./resources/meow.mp3"
 
+// Global game state
 var gameState GameState = GameState{
 	clicks: 0,
 	clickRect: Rectangle{
@@ -40,6 +41,7 @@ func Render(gamestate *GameState, catTexture Texture2D) {
 
 	ClearBackground(Black)
 
+	// Click animation
 	if gamestate.framesCounter > CLICK_ANIM_DURATION {
 		gamestate.framesCounter = 0
 		gamestate.clickRect.Width = 200
@@ -68,13 +70,15 @@ func Render(gamestate *GameState, catTexture Texture2D) {
 func RegisterMouseClick(gameState *GameState, catSfx *Sound) {
 	mousePos := GetMousePosition()
 	if CheckCollisionPointRec(mousePos, gameState.clickRect) {
+		// Hovering cursor
 		SetMouseCursor(MouseCursorPointingHand)
+		// Click register
 		if IsMouseButtonPressed(MouseLeftButton) {
-			r := (float32(GetRandomValue(90, 110)) / 100)
-			SetSoundPitch(*catSfx, r)
-			PlaySound(*catSfx)
 			gameState.clicks += 1
 			gameState.framesCounter = 1
+
+			SetSoundPitch(*catSfx, (float32(GetRandomValue(90, 110)) / 100))
+			PlaySound(*catSfx)
 		}
 	} else {
 		SetMouseCursor(MouseCursorArrow)
@@ -82,20 +86,22 @@ func RegisterMouseClick(gameState *GameState, catSfx *Sound) {
 }
 
 func MonitorScore(gameState *GameState) {
-
+	// TODO
 }
 
 func main() {
-
+	// Window init
 	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "meow meow meow")
 	defer CloseWindow()
 	SetTargetFPS(60)
 
+	// Textures init
 	var catTexture Texture2D = LoadTexture(CAT_TEXTURE_PATH)
 	if !IsTextureValid(catTexture) {
 		log.Fatalln("Texture invalid, aborting...")
 	}
 
+	// Sounds init
 	InitAudioDevice()
 	var catSfx Sound = LoadSound(CAT_SFX_PATH)
 	if !IsSoundValid(catSfx) {
