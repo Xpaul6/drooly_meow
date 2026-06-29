@@ -35,28 +35,28 @@ var gameState GameState = GameState{
 	framesCounter: 0,
 }
 
-func Render(gamestate *GameState, catTexture Texture2D) {
+func Render(gameState *GameState, catTexture Texture2D) {
 	BeginDrawing()
 	defer EndDrawing()
 
 	ClearBackground(Black)
 
 	// Click animation
-	if gamestate.framesCounter > CLICK_ANIM_DURATION {
-		gamestate.framesCounter = 0
-		gamestate.clickRect.Width = 200
-		gamestate.clickRect.Height = 200
-		gamestate.clickRect.X = 100
-		gamestate.clickRect.Y = 200
+	if gameState.framesCounter > CLICK_ANIM_DURATION {
+		gameState.framesCounter = 0
+		gameState.clickRect.Width = 200
+		gameState.clickRect.Height = 200
+		gameState.clickRect.X = 100
+		gameState.clickRect.Y = 200
 	}
-	if gameState.framesCounter <= CLICK_ANIM_DURATION && gamestate.framesCounter != 0 {
+	if gameState.framesCounter <= CLICK_ANIM_DURATION && gameState.framesCounter != 0 {
 		progress := float64(gameState.framesCounter) / CLICK_ANIM_DURATION
 		deform := float32(math.Sin(float64(progress)*math.Pi)) * DEFORM_INTENSITY
 
-		gamestate.clickRect.Width = 200 + deform
-		gamestate.clickRect.Height = 200 - deform
-		gamestate.clickRect.X = 100 - (deform / 2)
-		gamestate.clickRect.Y = 200 + (deform / 2)
+		gameState.clickRect.Width = 200 + deform
+		gameState.clickRect.Height = 200 - deform
+		gameState.clickRect.X = 100 - (deform / 2)
+		gameState.clickRect.Y = 200 + (deform / 2)
 		gameState.framesCounter += 1
 	}
 
