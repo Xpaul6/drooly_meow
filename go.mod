@@ -1,4 +1,4 @@
-module clicker
+module drolly_meow
 
 go 1.26.4
 
