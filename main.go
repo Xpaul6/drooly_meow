@@ -8,13 +8,15 @@ import (
 	. "github.com/gen2brain/raylib-go/raylib"
 )
 
+// Custom types
 type GameState struct {
 	clicks        int64
 	clickRect     Rectangle
-	isNotified     bool
+	isNotified    bool
 	framesCounter int
 }
 
+// Constants
 const WINDOW_WIDTH = 800
 const WINDOW_HEIGHT = 600
 const CLICK_ANIM_DURATION = 10
@@ -34,8 +36,12 @@ var gameState GameState = GameState{
 		Height: 200,
 	},
 	framesCounter: 0,
-	isNotified: false,
+	isNotified:    false,
 }
+
+// ------------------------------------
+// ---------- Game functions ----------
+// ------------------------------------
 
 func Render(gameState *GameState, catTexture Texture2D) {
 	BeginDrawing()
@@ -92,7 +98,7 @@ func MonitorScore(gameState *GameState, sounds *map[string]Sound) {
 	if gameState.clicks == 0 {
 		return
 	}
-	if !gameState.isNotified && gameState.clicks % 100 == 0 {
+	if !gameState.isNotified && gameState.clicks%100 == 0 {
 		PlaySound((*sounds)["levelUp"])
 		gameState.isNotified = true
 	}
@@ -111,10 +117,14 @@ func InitSounds() map[string]Sound {
 	if !IsSoundValid(sounds["levelUp"]) {
 		log.Fatalln("Sound invalid, aborting...")
 	}
-	SetSoundVolume(sounds["levelUp"], 0.5)
+	SetSoundVolume(sounds["levelUp"], 0.3)
 
 	return sounds
 }
+
+// -------------------------------
+// ---------- Game loop ----------
+// -------------------------------
 
 func main() {
 	// Window init
