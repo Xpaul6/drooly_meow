@@ -11,7 +11,7 @@ import (
 type GameState struct {
 	clicks        int64
 	clickRect     Rectangle
-	isClicked     bool
+	isNotified     bool
 	framesCounter int
 }
 
@@ -22,6 +22,7 @@ const DEFORM_INTENSITY = 70
 
 const CAT_TEXTURE_PATH = "./resources/drooly.png"
 const CAT_SFX_PATH = "./resources/meow.mp3"
+const LEVELUP_SFX_PATH = "./resources/levelup.mp3"
 
 // Global game state
 var gameState GameState = GameState{
@@ -33,6 +34,7 @@ var gameState GameState = GameState{
 		Height: 200,
 	},
 	framesCounter: 0,
+	isNotified: false,
 }
 
 func Render(gameState *GameState, catTexture Texture2D) {
@@ -67,7 +69,7 @@ func Render(gameState *GameState, catTexture Texture2D) {
 	// DrawFPS(20, 20)
 }
 
-func RegisterMouseClick(gameState *GameState, catSfx *Sound) {
+func RegisterMouseClick(gameState *GameState, sounds *map[string]Sound) {
 	mousePos := GetMousePosition()
 	if CheckCollisionPointRec(mousePos, gameState.clickRect) {
 		// Hovering cursor
@@ -76,17 +78,42 @@ func RegisterMouseClick(gameState *GameState, catSfx *Sound) {
 		if IsMouseButtonPressed(MouseLeftButton) {
 			gameState.clicks += 1
 			gameState.framesCounter = 1
+			gameState.isNotified = false
 
-			SetSoundPitch(*catSfx, (float32(GetRandomValue(90, 110)) / 100))
-			PlaySound(*catSfx)
+			SetSoundPitch((*sounds)["catSfx"], (float32(GetRandomValue(90, 110)) / 100))
+			PlaySound((*sounds)["catSfx"])
 		}
 	} else {
 		SetMouseCursor(MouseCursorArrow)
 	}
 }
 
-func MonitorScore(gameState *GameState) {
-	// TODO
+func MonitorScore(gameState *GameState, sounds *map[string]Sound) {
+	if gameState.clicks == 0 {
+		return
+	}
+	if !gameState.isNotified && gameState.clicks % 100 == 0 {
+		PlaySound((*sounds)["levelUp"])
+		gameState.isNotified = true
+	}
+}
+
+func InitSounds() map[string]Sound {
+	var sounds map[string]Sound = make(map[string]Sound)
+
+	sounds["catSfx"] = LoadSound(CAT_SFX_PATH)
+	if !IsSoundValid(sounds["catSfx"]) {
+		log.Fatalln("Sound invalid, aborting...")
+	}
+	SetSoundVolume(sounds["catSfx"], 0.5)
+
+	sounds["levelUp"] = LoadSound(LEVELUP_SFX_PATH)
+	if !IsSoundValid(sounds["levelUp"]) {
+		log.Fatalln("Sound invalid, aborting...")
+	}
+	SetSoundVolume(sounds["levelUp"], 0.5)
+
+	return sounds
 }
 
 func main() {
@@ -100,18 +127,14 @@ func main() {
 	if !IsTextureValid(catTexture) {
 		log.Fatalln("Texture invalid, aborting...")
 	}
-
 	// Sounds init
 	InitAudioDevice()
-	var catSfx Sound = LoadSound(CAT_SFX_PATH)
-	if !IsSoundValid(catSfx) {
-		log.Fatalln("Sound invalid, aborting...")
-	}
-	SetSoundVolume(catSfx, 0.5)
+	var sounds map[string]Sound = InitSounds()
 
 	// Game loop
 	for !WindowShouldClose() {
-		RegisterMouseClick(&gameState, &catSfx)
+		RegisterMouseClick(&gameState, &sounds)
+		MonitorScore(&gameState, &sounds)
 		Render(&gameState, catTexture)
 	}
 }
