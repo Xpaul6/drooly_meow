@@ -108,16 +108,17 @@ func InitSounds() map[string]Sound {
 	var sounds map[string]Sound = make(map[string]Sound)
 
 	sounds["catSfx"] = LoadSound(CAT_SFX_PATH)
-	if !IsSoundValid(sounds["catSfx"]) {
-		log.Fatalln("Sound invalid, aborting...")
-	}
 	SetSoundVolume(sounds["catSfx"], 0.5)
 
 	sounds["levelUp"] = LoadSound(LEVELUP_SFX_PATH)
-	if !IsSoundValid(sounds["levelUp"]) {
-		log.Fatalln("Sound invalid, aborting...")
-	}
 	SetSoundVolume(sounds["levelUp"], 0.3)
+
+	// Samples validation
+	for k, v := range sounds {
+		if !IsSoundValid(v) {
+			log.Fatalf("Error importing %s sfx, aborting...", k)
+		}
+	}
 
 	return sounds
 }
