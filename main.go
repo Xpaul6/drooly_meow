@@ -16,34 +16,26 @@ type GameState struct {
 	framesCounter int
 }
 
-// Constants
+// Constants & globals
 const WINDOW_WIDTH = 800
 const WINDOW_HEIGHT = 600
 const CLICK_ANIM_DURATION = 10
 const DEFORM_INTENSITY = 70
 
-const CAT_TEXTURE_PATH = "./resources/drooly.png"
-const CAT_SFX_PATH = "./resources/meow.mp3"
-const LEVELUP_SFX_PATH = "./resources/levelup.mp3"
+var TEXTURES_MAP = map[string]string {
+	"catTexture": "./resources/drooly.png",
+}
 
-// Global game state
-var gameState GameState = GameState{
-	clicks: 0,
-	clickRect: Rectangle{
-		X:      100,
-		Y:      200,
-		Width:  200,
-		Height: 200,
-	},
-	framesCounter: 0,
-	isNotified:    false,
+var SOUNDS_MAP = map[string]string {
+	"catSfx":  "./resources/meow.mp3",
+	"levelUp": "./resources/levelup.mp3",
 }
 
 // ------------------------------------
 // ---------- Game functions ----------
 // ------------------------------------
 
-func Render(gameState *GameState, catTexture Texture2D) {
+func Render(gameState *GameState, textures *map[string]Texture2D) {
 	BeginDrawing()
 	defer EndDrawing()
 
@@ -69,8 +61,8 @@ func Render(gameState *GameState, catTexture Texture2D) {
 	}
 
 	// DrawRectangleRec(gameState.clickRect, Blue)
-	sourceRect := Rectangle{X: 0, Y: 0, Width: float32(catTexture.Width), Height: float32(catTexture.Height)}
-	DrawTexturePro(catTexture, sourceRect, gameState.clickRect, Vector2{X: 0, Y: 0}, 0, White)
+	sourceRect := Rectangle{X: 0, Y: 0, Width: float32((*textures)["catTexture"].Width), Height: float32((*textures)["catTexture"].Height)}
+	DrawTexturePro((*textures)["catTexture"], sourceRect, gameState.clickRect, Vector2{X: 0, Y: 0}, 0, White)
 	DrawText(strconv.Itoa(int(gameState.clicks)), 600, 280, 40, RayWhite)
 	// DrawFPS(20, 20)
 }
@@ -104,13 +96,31 @@ func MonitorScore(gameState *GameState, sounds *map[string]Sound) {
 	}
 }
 
+func InitTextures() map[string]Texture2D {
+	var textures map[string]Texture2D = make(map[string]Texture2D)
+
+	for k, v := range TEXTURES_MAP {
+		textures[k] = LoadTexture(v)
+	}
+
+	for k, v := range textures {
+		if !IsTextureValid(v) {
+			log.Fatalf("Error importing %s texture, aborting...", k)
+		}
+	}
+
+	return textures
+}
+
 func InitSounds() map[string]Sound {
 	var sounds map[string]Sound = make(map[string]Sound)
 
-	sounds["catSfx"] = LoadSound(CAT_SFX_PATH)
-	SetSoundVolume(sounds["catSfx"], 0.5)
+	for k, v := range SOUNDS_MAP {
+		sounds[k] = LoadSound(v)
+	}
 
-	sounds["levelUp"] = LoadSound(LEVELUP_SFX_PATH)
+	// Volume controls
+	SetSoundVolume(sounds["catSfx"], 0.5)
 	SetSoundVolume(sounds["levelUp"], 0.3)
 
 	// Samples validation
@@ -128,16 +138,27 @@ func InitSounds() map[string]Sound {
 // -------------------------------
 
 func main() {
+	// Game state init
+	var gameState GameState = GameState{
+		clicks: 0,
+		clickRect: Rectangle{
+			X:      100,
+			Y:      200,
+			Width:  200,
+			Height: 200,
+		},
+		framesCounter: 0,
+		isNotified:    false,
+	}
+
 	// Window init
 	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "meow meow meow")
 	defer CloseWindow()
 	SetTargetFPS(60)
 
 	// Textures init
-	var catTexture Texture2D = LoadTexture(CAT_TEXTURE_PATH)
-	if !IsTextureValid(catTexture) {
-		log.Fatalln("Texture invalid, aborting...")
-	}
+	var textures map[string]Texture2D = InitTextures()
+
 	// Sounds init
 	InitAudioDevice()
 	var sounds map[string]Sound = InitSounds()
@@ -146,6 +167,6 @@ func main() {
 	for !WindowShouldClose() {
 		RegisterMouseClick(&gameState, &sounds)
 		MonitorScore(&gameState, &sounds)
-		Render(&gameState, catTexture)
+		Render(&gameState, &textures)
 	}
 }
